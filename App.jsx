@@ -2971,17 +2971,34 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
       onLoginSuccess();
       onClose();
     } catch (err) {
+      console.error('Google Sign-In error:', err);
       let errorMessage = err.message;
       if (err.code === 'auth/popup-closed-by-user') {
         errorMessage = 'Sign-in popup was closed. Please try again.';
       } else if (err.code === 'auth/cancelled-popup-request') {
         errorMessage = 'Another popup is already open.';
+      } else if (err.code === 'auth/unauthorized-domain') {
+        errorMessage = 'This domain is not authorized for Google Sign-In. Please add your domain in Firebase Console under Authentication > Settings > Authorized domains.';
+      } else if (err.code === 'auth/popup-blocked') {
+        errorMessage = 'Popup was blocked by your browser. Please allow popups for this site.';
       }
       setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
+
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setError('');
+      setName('');
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      setLoading(false);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -3176,6 +3193,7 @@ function App() {
   };
 
   const handleLoginSuccess = () => {
+    setShowLoginModal(false); // Close the modal
     if (pendingAction) {
       pendingAction();
       setPendingAction(null);
