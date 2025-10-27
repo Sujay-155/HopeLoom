@@ -5,7 +5,7 @@ import { setDoc, doc, getDoc, addDoc, collection, serverTimestamp } from 'fireba
 import { 
   Sprout, Heart, Phone, Mail, MapPin, Check, Brain, Target, 
   Star, Lock, BarChart3, Menu, X, Send, Clock, Users, 
-  Shield, AlertCircle, MessageCircle, ChevronRight, ChevronLeft 
+  Shield, AlertCircle, MessageCircle, ChevronRight, ChevronLeft, Instagram 
 } from 'lucide-react';
 import CardSwap, { Card } from './CardSwap';
 import DecryptedText from './DecryptedText';
@@ -201,6 +201,17 @@ const Header = ({ currentPage, setCurrentPage, user, userProfile, onLogout, onLo
               </button>
             ))}
             
+            {/* Instagram Link */}
+            <a
+              href="https://www.instagram.com/hopeloomorg?igsh=MWdnYTU3dm1kYWZr"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#555555] hover:text-[#E4405F] transition-all duration-300"
+              title="Follow us on Instagram"
+            >
+              <Instagram className="w-5 h-5" />
+            </a>
+            
             {/* User Info / Logout or Sign In Button */}
             {user ? (
               <div className="flex items-center gap-3 ml-4 pl-4 border-l-2 border-[#a6d7a6]">
@@ -258,6 +269,18 @@ const Header = ({ currentPage, setCurrentPage, user, userProfile, onLogout, onLo
                 {link.label}
               </button>
             ))}
+            
+            {/* Mobile Instagram Link */}
+            <a
+              href="https://www.instagram.com/hopeloomorg?igsh=MWdnYTU3dm1kYWZr"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-3 rounded-lg border-2 border-[#a6d7a6] hover:border-[#E4405F] text-[#222222] hover:text-[#E4405F] font-semibold transition-all duration-300 flex items-center justify-center gap-2"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <Instagram className="w-5 h-5" />
+              <span>Follow us on Instagram</span>
+            </a>
             
             {/* Mobile User Info / Logout or Sign In */}
             {user ? (
@@ -1654,6 +1677,23 @@ const ContactPage = ({ user }) => {
                   <div>
                     <p className="font-semibold text-[#222222]">Office Hours</p>
                     <p className="text-[#555555]">Monday - Friday: 8am - 8pm<br />Saturday: 10am - 4pm</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0">
+                    <Instagram className="w-8 h-8 text-[#2d8f2d]" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-[#222222]">Follow Us</p>
+                    <a 
+                      href="https://www.instagram.com/hopeloomorg?igsh=MWdnYTU3dm1kYWZr"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#555555] hover:text-[#E4405F] transition-colors duration-300 flex items-center gap-2"
+                    >
+                      <span>@hopeloomorg</span>
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
                   </div>
                 </div>
               </div>
