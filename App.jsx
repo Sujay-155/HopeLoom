@@ -19,7 +19,7 @@ const PROFESSIONALS_DATA = [
     name: "Dr. Somesh",
     title: "Counselor",
     specializations: ["Addiction", "Grief and Trauma Therapy", "Pocso Expert"],
-    image: "sm.jpg",
+    image: "/sm.jpg",
     bio: "Experience of working with childrens conflicts with laws"
   },
   {
