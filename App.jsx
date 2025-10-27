@@ -1158,16 +1158,26 @@ const ResourcesPage = () => {
   useEffect(() => {
     const fetchHealthNews = async () => {
       try {
+        console.log('Fetching mental health news...');
         // Use CORS proxy for production
         const apiUrl = 'https://newsapi.org/v2/everything?q=mental+health+OR+depression+OR+anxiety+OR+therapy+OR+wellbeing&language=en&sortBy=publishedAt&apiKey=e4d976327f21462fb152474b0a88d683';
         const proxyUrl = 'https://api.allorigins.win/raw?url=';
         
         const response = await fetch(proxyUrl + encodeURIComponent(apiUrl));
-        const data = await response.json();
+        console.log('Response status:', response.status);
         
-        if (data.status === 'ok' && data.articles) {
+        if (!response.ok) {
+          throw new Error('Failed to fetch news');
+        }
+        
+        const data = await response.json();
+        console.log('News API response:', data);
+        
+        if (data.status === 'ok' && data.articles && data.articles.length > 0) {
           setHealthNews(data.articles.slice(0, 6)); // Get top 6 articles
+          console.log('Successfully loaded', data.articles.length, 'articles');
         } else {
+          console.warn('API returned no articles, using fallback');
           // Fallback to static mental health articles if API fails
           setHealthNews([
             {
@@ -1222,6 +1232,7 @@ const ResourcesPage = () => {
         }
       } catch (error) {
         console.error('Error fetching mental health news:', error);
+        console.log('Using fallback articles due to error');
         // Fallback to static mental health articles
         setHealthNews([
           {
@@ -1275,6 +1286,7 @@ const ResourcesPage = () => {
         ]);
       } finally {
         setNewsLoading(false);
+        console.log('News loading complete');
       }
     };
 
