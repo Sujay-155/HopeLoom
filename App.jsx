@@ -2920,7 +2920,9 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
           console.log('No profile data found for this user.');
         }
 
+        console.log('Login successful, closing modal...');
         onLoginSuccess();
+        onClose();
       } else {
         // --- SIGNUP FLOW ---
         // Validation
@@ -2954,7 +2956,9 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
         });
 
         console.log('User account created and profile saved!');
+        console.log('Signup successful, closing modal...');
         onLoginSuccess();
+        onClose();
       }
     } catch (err) {
       // Better error messages
@@ -2972,6 +2976,7 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
       }
       
       setError(errorMessage);
+    } finally {
       setLoading(false);
     }
   };
@@ -3018,7 +3023,9 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
       }
 
       console.log('Google Sign-In successful!');
+      console.log('Closing modal...');
       onLoginSuccess();
+      onClose();
     } catch (err) {
       console.error('Google Sign-In error:', err);
       let errorMessage = err.message;
