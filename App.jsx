@@ -1135,19 +1135,121 @@ const ResourcesPage = () => {
   useEffect(() => {
     const fetchHealthNews = async () => {
       try {
-        const response = await fetch(
-          'https://newsapi.org/v2/everything?q=mental+health+OR+depression+OR+anxiety+OR+therapy+OR+wellbeing&language=en&sortBy=publishedAt&apiKey=e4d976327f21462fb152474b0a88d683'
-        );
+        // Use CORS proxy for production
+        const apiUrl = 'https://newsapi.org/v2/everything?q=mental+health+OR+depression+OR+anxiety+OR+therapy+OR+wellbeing&language=en&sortBy=publishedAt&apiKey=e4d976327f21462fb152474b0a88d683';
+        const proxyUrl = 'https://api.allorigins.win/raw?url=';
+        
+        const response = await fetch(proxyUrl + encodeURIComponent(apiUrl));
         const data = await response.json();
         
-        if (data.status === 'ok') {
+        if (data.status === 'ok' && data.articles) {
           setHealthNews(data.articles.slice(0, 6)); // Get top 6 articles
         } else {
-          setNewsError('Failed to load mental health news');
+          // Fallback to static mental health articles if API fails
+          setHealthNews([
+            {
+              title: "Understanding Mental Health: A Comprehensive Guide",
+              description: "Learn about the importance of mental health and how to maintain emotional wellbeing in today's fast-paced world.",
+              url: "https://www.mentalhealth.gov/basics/what-is-mental-health",
+              urlToImage: null,
+              publishedAt: new Date().toISOString(),
+              source: { name: "Mental Health Resources" }
+            },
+            {
+              title: "Coping with Anxiety: Effective Strategies",
+              description: "Discover evidence-based techniques to manage anxiety and reduce stress in your daily life.",
+              url: "https://www.nimh.nih.gov/health/topics/anxiety-disorders",
+              urlToImage: null,
+              publishedAt: new Date().toISOString(),
+              source: { name: "NIMH" }
+            },
+            {
+              title: "Depression: Signs, Symptoms, and Support",
+              description: "Understanding depression and finding the right help and treatment options available.",
+              url: "https://www.nimh.nih.gov/health/topics/depression",
+              urlToImage: null,
+              publishedAt: new Date().toISOString(),
+              source: { name: "NIMH" }
+            },
+            {
+              title: "The Importance of Therapy in Mental Wellness",
+              description: "How therapy can help improve mental health and provide tools for managing life's challenges.",
+              url: "https://www.apa.org/topics/psychotherapy",
+              urlToImage: null,
+              publishedAt: new Date().toISOString(),
+              source: { name: "APA" }
+            },
+            {
+              title: "Building Resilience and Emotional Strength",
+              description: "Learn strategies to build resilience and maintain mental wellbeing during difficult times.",
+              url: "https://www.mentalhealth.gov/basics/mental-health-myths-facts",
+              urlToImage: null,
+              publishedAt: new Date().toISOString(),
+              source: { name: "Mental Health Resources" }
+            },
+            {
+              title: "Self-Care Practices for Mental Health",
+              description: "Simple daily practices that can significantly improve your mental health and overall wellbeing.",
+              url: "https://www.samhsa.gov/mental-health",
+              urlToImage: null,
+              publishedAt: new Date().toISOString(),
+              source: { name: "SAMHSA" }
+            }
+          ]);
         }
       } catch (error) {
         console.error('Error fetching mental health news:', error);
-        setNewsError('Failed to load mental health news');
+        // Fallback to static mental health articles
+        setHealthNews([
+          {
+            title: "Understanding Mental Health: A Comprehensive Guide",
+            description: "Learn about the importance of mental health and how to maintain emotional wellbeing in today's fast-paced world.",
+            url: "https://www.mentalhealth.gov/basics/what-is-mental-health",
+            urlToImage: null,
+            publishedAt: new Date().toISOString(),
+            source: { name: "Mental Health Resources" }
+          },
+          {
+            title: "Coping with Anxiety: Effective Strategies",
+            description: "Discover evidence-based techniques to manage anxiety and reduce stress in your daily life.",
+            url: "https://www.nimh.nih.gov/health/topics/anxiety-disorders",
+            urlToImage: null,
+            publishedAt: new Date().toISOString(),
+            source: { name: "NIMH" }
+          },
+          {
+            title: "Depression: Signs, Symptoms, and Support",
+            description: "Understanding depression and finding the right help and treatment options available.",
+            url: "https://www.nimh.nih.gov/health/topics/depression",
+            urlToImage: null,
+            publishedAt: new Date().toISOString(),
+            source: { name: "NIMH" }
+          },
+          {
+            title: "The Importance of Therapy in Mental Wellness",
+            description: "How therapy can help improve mental health and provide tools for managing life's challenges.",
+            url: "https://www.apa.org/topics/psychotherapy",
+            urlToImage: null,
+            publishedAt: new Date().toISOString(),
+            source: { name: "APA" }
+          },
+          {
+            title: "Building Resilience and Emotional Strength",
+            description: "Learn strategies to build resilience and maintain mental wellbeing during difficult times.",
+            url: "https://www.mentalhealth.gov/basics/mental-health-myths-facts",
+            urlToImage: null,
+            publishedAt: new Date().toISOString(),
+            source: { name: "Mental Health Resources" }
+          },
+          {
+            title: "Self-Care Practices for Mental Health",
+            description: "Simple daily practices that can significantly improve your mental health and overall wellbeing.",
+            url: "https://www.samhsa.gov/mental-health",
+            urlToImage: null,
+            publishedAt: new Date().toISOString(),
+            source: { name: "SAMHSA" }
+          }
+        ]);
       } finally {
         setNewsLoading(false);
       }
