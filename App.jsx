@@ -2705,7 +2705,7 @@ const BookAppointmentPage = ({ user }) => {
       if (selectedProf?.email) {
         try {
           // Initialize EmailJS with your public key
-          emailjs.init('YOUR_PUBLIC_KEY'); // Replace with your EmailJS public key
+          emailjs.init('6aeRvW31pgFmV20p3');
           
           const templateParams = {
             to_email: selectedProf.email,
@@ -2720,8 +2720,8 @@ const BookAppointmentPage = ({ user }) => {
           };
 
           await emailjs.send(
-            'YOUR_SERVICE_ID',  // Replace with your EmailJS service ID
-            'YOUR_TEMPLATE_ID', // Replace with your EmailJS template ID
+            'default_service',  // EmailJS uses 'default_service' for the connected email service
+            'template_3gdnyxm',
             templateParams
           );
           
