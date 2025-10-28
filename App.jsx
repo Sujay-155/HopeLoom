@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { db, auth, storage } from './firebase';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { setDoc, doc, getDoc, addDoc, collection, serverTimestamp, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
+import emailjs from '@emailjs/browser';
 import { 
   Sprout, Heart, Phone, Mail, MapPin, Check, Brain, Target, 
   Star, Lock, BarChart3, Menu, X, Send, Clock, Users, 
@@ -21,7 +22,8 @@ const PROFESSIONALS_DATA = [
     title: "Counselor",
     specializations: ["Addiction", "Grief and Trauma Therapy", "Pocso Expert"],
     image: "/sm.jpg",
-    bio: "Experience of working with childrens conflicts with laws"
+    bio: "Experience of working with childrens conflicts with laws",
+    email: "dr.somesh@hopeloom.com"
   },
   {
     id: 2,
@@ -29,7 +31,8 @@ const PROFESSIONALS_DATA = [
     title: "Licensed Therapist",
     specializations: ["Stress Management", "Relationships", "Work-Life Balance"],
     image: "https://placehold.co/400x400/247124/ffffff?text=JC",
-    bio: "Specializing in mindfulness-based interventions"
+    bio: "Specializing in mindfulness-based interventions",
+    email: "dr.jameschen@hopeloom.com"
   },
   {
     id: 3,
@@ -37,7 +40,8 @@ const PROFESSIONALS_DATA = [
     title: "Psychiatric Nurse Practitioner",
     specializations: ["Mood Disorders", "ADHD", "Medication Management"],
     image: "https://placehold.co/400x400/2d8f2d/ffffff?text=ER",
-    bio: "Holistic approach to mental health care"
+    bio: "Holistic approach to mental health care",
+    email: "dr.emilyrodriguez@hopeloom.com"
   },
   {
     id: 4,
@@ -45,7 +49,8 @@ const PROFESSIONALS_DATA = [
     title: "Licensed Clinical Social Worker",
     specializations: ["Family Therapy", "Grief Counseling", "PTSD"],
     image: "https://placehold.co/400x400/247124/ffffff?text=MT",
-    bio: "Compassionate care for individuals and families"
+    bio: "Compassionate care for individuals and families",
+    email: "dr.michaelthompson@hopeloom.com"
   }
 ];
 
@@ -2300,7 +2305,7 @@ const ScreeningHubPage = ({ setActiveQuiz, user, onLoginRequired }) => {
 };
 
 // ==================== QUIZ FLOW COMPONENT ====================
-const QuizFlow = ({ quizType, setActiveQuiz, setQuizResult, user }) => {
+const QuizFlow = ({ quizType, setActiveQuiz, setQuizResult, user, userProfile }) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [responses, setResponses] = useState({});
   const [showProgress, setShowProgress] = useState(true);
@@ -2328,19 +2333,25 @@ const QuizFlow = ({ quizType, setActiveQuiz, setQuizResult, user }) => {
       // Quiz complete - calculate score
       const totalScore = Object.values(responses).reduce((sum, val) => sum + val, 0);
       const maxScore = totalQuestions * 3;
+      const severity = calculateSeverity(totalScore, maxScore);
       
       // Save assessment results to Firestore if user is logged in
       if (user) {
         try {
           await addDoc(collection(db, 'assessments'), {
             userId: user.uid,
+            userName: userProfile?.name || user.displayName || user.email,
+            userEmail: user.email,
+            type: quizType,
             assessmentType: quizType,
             score: totalScore,
             maxScore: maxScore,
-            severity: calculateSeverity(totalScore, maxScore),
+            severity: severity,
             responses: responses,
+            createdAt: serverTimestamp(),
             completedAt: serverTimestamp()
           });
+          console.log('Assessment saved successfully with user details!');
         } catch (error) {
           console.error('Error saving assessment:', error);
         }
@@ -2671,21 +2682,56 @@ const BookAppointmentPage = ({ user }) => {
         (prof) => prof.id === parseInt(formData.professionalId)
       );
 
-      await addDoc(collection(db, 'appointments'), {
+      const appointmentData = {
         userId: user.uid,
         userName: formData.name,
         userEmail: formData.email,
         userPhone: formData.phone,
         professionalId: formData.professionalId,
         professionalName: selectedProf?.name || 'Unknown',
+        professionalEmail: selectedProf?.email || '',
         preferredDate: formData.preferredDate,
         preferredTime: formData.preferredTime,
         reason: formData.reason,
         status: 'pending',
         createdAt: serverTimestamp()
-      });
+      };
+
+      await addDoc(collection(db, 'appointments'), appointmentData);
 
       console.log('Appointment saved to Firestore!');
+
+      // Send email notification to doctor using EmailJS
+      if (selectedProf?.email) {
+        try {
+          // Initialize EmailJS with your public key
+          emailjs.init('YOUR_PUBLIC_KEY'); // Replace with your EmailJS public key
+          
+          const templateParams = {
+            to_email: selectedProf.email,
+            to_name: selectedProf.name,
+            patient_name: formData.name,
+            patient_email: formData.email,
+            patient_phone: formData.phone,
+            appointment_date: formData.preferredDate,
+            appointment_time: formData.preferredTime,
+            reason: formData.reason,
+            reply_to: formData.email
+          };
+
+          await emailjs.send(
+            'YOUR_SERVICE_ID',  // Replace with your EmailJS service ID
+            'YOUR_TEMPLATE_ID', // Replace with your EmailJS template ID
+            templateParams
+          );
+          
+          console.log('Email notification sent to doctor!');
+        } catch (emailError) {
+          console.error('Error sending email notification:', emailError);
+          // Don't fail the whole operation if email fails
+        }
+      }
+
       setSubmitted(true);
       
       // Reset form after 5 seconds
@@ -3541,6 +3587,7 @@ function App() {
           setActiveQuiz={setActiveQuiz}
           setQuizResult={setQuizResult}
           user={user}
+          userProfile={userProfile}
         />
       )}
 
