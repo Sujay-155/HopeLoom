@@ -5,7 +5,7 @@ import { setDoc, doc, getDoc, addDoc, collection, serverTimestamp } from 'fireba
 import { 
   Sprout, Heart, Phone, Mail, MapPin, Check, Brain, Target, 
   Star, Lock, BarChart3, Menu, X, Send, Clock, Users, 
-  Shield, AlertCircle, MessageCircle, ChevronRight, ChevronLeft, Instagram 
+  Shield, AlertCircle, MessageCircle, ChevronRight, ChevronLeft, Instagram, ExternalLink 
 } from 'lucide-react';
 import CardSwap, { Card } from './CardSwap';
 import DecryptedText from './DecryptedText';
@@ -201,17 +201,6 @@ const Header = ({ currentPage, setCurrentPage, user, userProfile, onLogout, onLo
               </button>
             ))}
             
-            {/* Instagram Link */}
-            <a
-              href="https://www.instagram.com/hopeloomorg?igsh=MWdnYTU3dm1kYWZr"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#555555] hover:text-[#E4405F] transition-all duration-300"
-              title="Follow us on Instagram"
-            >
-              <Instagram className="w-5 h-5" />
-            </a>
-            
             {/* User Info / Logout or Sign In Button */}
             {user ? (
               <div className="flex items-center gap-3 ml-4 pl-4 border-l-2 border-[#a6d7a6]">
@@ -269,18 +258,6 @@ const Header = ({ currentPage, setCurrentPage, user, userProfile, onLogout, onLo
                 {link.label}
               </button>
             ))}
-            
-            {/* Mobile Instagram Link */}
-            <a
-              href="https://www.instagram.com/hopeloomorg?igsh=MWdnYTU3dm1kYWZr"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full py-3 rounded-lg border-2 border-[#a6d7a6] hover:border-[#E4405F] text-[#222222] hover:text-[#E4405F] font-semibold transition-all duration-300 flex items-center justify-center gap-2"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              <Instagram className="w-5 h-5" />
-              <span>Follow us on Instagram</span>
-            </a>
             
             {/* Mobile User Info / Logout or Sign In */}
             {user ? (
@@ -397,14 +374,20 @@ const Footer = ({ setCurrentPage }) => {
           <div>
             <h4 className="font-bold mb-4">Connect With Us</h4>
             <div className="flex space-x-4">
-              <a href="#" className="text-2xl hover:text-[#a6d7a6] transition-all duration-300">
-                📘
+              <a 
+                href="https://www.instagram.com/hopeloomorg?igsh=MWdnYTU3dm1kYWZr"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#fefefe] hover:text-[#E4405F] transition-all duration-300"
+                title="Follow us on Instagram"
+              >
+                <Instagram className="w-6 h-6" />
               </a>
               <a href="#" className="text-2xl hover:text-[#a6d7a6] transition-all duration-300">
-                🐦
+                �
               </a>
               <a href="#" className="text-2xl hover:text-[#a6d7a6] transition-all duration-300">
-                📷
+                �
               </a>
               <a href="#" className="text-2xl hover:text-[#a6d7a6] transition-all duration-300">
                 💼
@@ -2921,8 +2904,12 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
         }
 
         console.log('Login successful, closing modal...');
-        onLoginSuccess();
-        onClose();
+        setLoading(false);
+        // Small delay to ensure UI updates before closing
+        setTimeout(() => {
+          onLoginSuccess();
+          onClose();
+        }, 100);
       } else {
         // --- SIGNUP FLOW ---
         // Validation
@@ -2957,8 +2944,12 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
 
         console.log('User account created and profile saved!');
         console.log('Signup successful, closing modal...');
-        onLoginSuccess();
-        onClose();
+        setLoading(false);
+        // Small delay to ensure UI updates before closing
+        setTimeout(() => {
+          onLoginSuccess();
+          onClose();
+        }, 100);
       }
     } catch (err) {
       // Better error messages
@@ -2976,7 +2967,6 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
       }
       
       setError(errorMessage);
-    } finally {
       setLoading(false);
     }
   };
@@ -3024,8 +3014,12 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
 
       console.log('Google Sign-In successful!');
       console.log('Closing modal...');
-      onLoginSuccess();
-      onClose();
+      setLoading(false);
+      // Small delay to ensure UI updates before closing
+      setTimeout(() => {
+        onLoginSuccess();
+        onClose();
+      }, 100);
     } catch (err) {
       console.error('Google Sign-In error:', err);
       let errorMessage = err.message;
