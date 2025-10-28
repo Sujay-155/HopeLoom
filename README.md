@@ -29,12 +29,25 @@ A comprehensive mental health and wellness application built with React, Firebas
 - User profiles stored in Firestore
 - Secure Firebase Authentication
 
-### 💾 Data Management
-- User profiles
-- Assessment results history
-- Appointment bookings
+### � Email Notifications
+- Doctors receive email when appointments are booked
+- Appointment details sent automatically
+- EmailJS integration for reliable delivery
+- Patient contact information included
+
+### 👤 User Profile Dashboard
+- View all completed assessments
+- Track assessment scores and severity levels
+- View upcoming appointments
+- Quick actions for new assessments and bookings
+
+### �💾 Data Management
+- User profiles with full name and email
+- Assessment results with user information
+- Appointment bookings with doctor assignments
 - Contact form submissions
 - All data stored securely in Firebase Firestore
+- Doctors can view patient assessments
 
 ### 🎨 Modern UI/UX
 - 3D CardSwap animations (GSAP)
@@ -61,6 +74,7 @@ A comprehensive mental health and wellness application built with React, Firebas
 - **Framer Motion** - Text animations
 - **Lucide React** - Icons
 - **News API** - Mental health news
+- **EmailJS** - Email notifications
 - **Vite** - Build tool
 
 ## 📦 Installation
@@ -86,12 +100,17 @@ npm install
    - Get a free API key from [News API](https://newsapi.org/)
    - Update the API key in `App.jsx` (ResourcesPage component)
 
-5. Run the development server:
+5. Set up EmailJS for appointment notifications:
+   - Follow the detailed guide in [EMAIL_SETUP.md](./EMAIL_SETUP.md)
+   - Configure your email service, template, and keys
+   - Update doctor email addresses in `PROFESSIONALS_DATA`
+
+6. Run the development server:
 ```bash
 npm run dev
 ```
 
-6. Build for production:
+7. Build for production:
 ```bash
 npm run build
 ```
@@ -104,16 +123,16 @@ npm run build
   - name, email, createdAt, lastLogin, role, photoURL
 
 - **assessments**: Mental health test results
-  - userId, assessmentType, score, maxScore, severity, responses, completedAt
+  - userId, userName, userEmail, type, assessmentType, score, maxScore, severity, responses, createdAt, completedAt
 
 - **appointments**: Professional bookings
-  - userId, userName, userEmail, professionalId, preferredDate, status, createdAt
+  - userId, userName, userEmail, userPhone, professionalId, professionalName, professionalEmail, preferredDate, preferredTime, reason, status, createdAt
 
 - **contacts**: Support form submissions
   - userId, name, email, subject, message, status, createdAt
 
 - **professionals**: Healthcare providers
-  - name, title, specializations, bio, imageUrl, isActive
+  - name, title, specializations, bio, email, imageUrl, isActive
 
 ## 🎯 Features in Detail
 
