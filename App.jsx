@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { db, auth, storage } from './firebase';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { setDoc, doc, getDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { setDoc, doc, getDoc, addDoc, collection, serverTimestamp, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 import { 
   Sprout, Heart, Phone, Mail, MapPin, Check, Brain, Target, 
   Star, Lock, BarChart3, Menu, X, Send, Clock, Users, 
-  Shield, AlertCircle, MessageCircle, ChevronRight, ChevronLeft, Instagram, ExternalLink 
+  Shield, AlertCircle, MessageCircle, ChevronRight, ChevronLeft, Instagram, ExternalLink,
+  UserCircle, ChevronDown, Calendar, ClipboardList, LogOut 
 } from 'lucide-react';
 import CardSwap, { Card } from './CardSwap';
 import DecryptedText from './DecryptedText';
@@ -152,6 +153,210 @@ const useScrollAnimation = () => {
   return [elementRef, isVisible];
 };
 
+// ==================== USER PROFILE DROPDOWN ====================
+const UserProfileDropdown = ({ user, userProfile, onLogout, setCurrentPage }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [userAssessments, setUserAssessments] = useState([]);
+  const [userAppointments, setUserAppointments] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Fetch user data when dropdown opens
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (isOpen && user && !loading) {
+        setLoading(true);
+        try {
+          // Fetch assessments
+          const assessmentsRef = collection(db, 'assessments');
+          const assessmentsQuery = query(
+            assessmentsRef,
+            where('userId', '==', user.uid),
+            orderBy('createdAt', 'desc'),
+            limit(5)
+          );
+          const assessmentsSnap = await getDocs(assessmentsQuery);
+          const assessmentsData = assessmentsSnap.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          setUserAssessments(assessmentsData);
+
+          // Fetch appointments
+          const appointmentsRef = collection(db, 'appointments');
+          const appointmentsQuery = query(
+            appointmentsRef,
+            where('userId', '==', user.uid),
+            orderBy('createdAt', 'desc'),
+            limit(5)
+          );
+          const appointmentsSnap = await getDocs(appointmentsQuery);
+          const appointmentsData = appointmentsSnap.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          setUserAppointments(appointmentsData);
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [isOpen, user]);
+
+  const getSeverityColor = (severity) => {
+    switch (severity?.toLowerCase()) {
+      case 'minimal':
+      case 'mild':
+        return 'text-green-600 bg-green-50';
+      case 'moderate':
+        return 'text-yellow-600 bg-yellow-50';
+      case 'severe':
+        return 'text-red-600 bg-red-50';
+      default:
+        return 'text-gray-600 bg-gray-50';
+    }
+  };
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-[#f8fcf8] transition-all duration-300 border-2 border-[#a6d7a6]"
+      >
+        <UserCircle className="w-5 h-5 text-[#2d8f2d]" />
+        <span className="text-sm font-medium text-[#222222]">
+          {userProfile?.name || user?.displayName || user?.email?.split('@')[0]}
+        </span>
+        <ChevronDown className={`w-4 h-4 text-[#555555] transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-2xl border-2 border-[#a6d7a6] z-50 max-h-[80vh] overflow-y-auto">
+          {/* User Info Header */}
+          <div className="p-4 border-b-2 border-[#a6d7a6] bg-gradient-to-r from-[#2d8f2d] to-[#247124]">
+            <div className="flex items-center gap-3">
+              <UserCircle className="w-12 h-12 text-white" />
+              <div className="flex-1">
+                <h3 className="font-bold text-white">
+                  {userProfile?.name || user?.displayName || 'User'}
+                </h3>
+                <p className="text-sm text-white opacity-90">{user?.email}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Assessments Section */}
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex items-center gap-2 mb-3">
+              <ClipboardList className="w-5 h-5 text-[#2d8f2d]" />
+              <h4 className="font-semibold text-[#222222]">Recent Assessments</h4>
+            </div>
+            {loading ? (
+              <p className="text-sm text-[#555555] text-center py-2">Loading...</p>
+            ) : userAssessments.length > 0 ? (
+              <div className="space-y-2">
+                {userAssessments.map((assessment) => (
+                  <div key={assessment.id} className="p-2 bg-[#f8fcf8] rounded border border-[#a6d7a6]">
+                    <div className="flex justify-between items-start mb-1">
+                      <span className="text-sm font-medium text-[#222222] capitalize">
+                        {assessment.type}
+                      </span>
+                      <span className={`text-xs px-2 py-1 rounded-full ${getSeverityColor(assessment.severity)}`}>
+                        {assessment.severity}
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#555555]">
+                      Score: {assessment.score} | {assessment.createdAt?.toDate?.()?.toLocaleDateString() || 'N/A'}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-[#555555] text-center py-2">No assessments yet</p>
+            )}
+          </div>
+
+          {/* Appointments Section */}
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex items-center gap-2 mb-3">
+              <Calendar className="w-5 h-5 text-[#2d8f2d]" />
+              <h4 className="font-semibold text-[#222222]">Upcoming Appointments</h4>
+            </div>
+            {loading ? (
+              <p className="text-sm text-[#555555] text-center py-2">Loading...</p>
+            ) : userAppointments.length > 0 ? (
+              <div className="space-y-2">
+                {userAppointments.map((appointment) => (
+                  <div key={appointment.id} className="p-2 bg-[#f8fcf8] rounded border border-[#a6d7a6]">
+                    <p className="text-sm font-medium text-[#222222]">
+                      {appointment.date} at {appointment.time}
+                    </p>
+                    <p className="text-xs text-[#555555] capitalize">
+                      Status: {appointment.status || 'Pending'}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-[#555555] text-center py-2">No appointments scheduled</p>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="p-3 space-y-2">
+            <button
+              onClick={() => {
+                setCurrentPage('screening');
+                setIsOpen(false);
+              }}
+              className="w-full px-4 py-2 text-sm bg-[#2d8f2d] hover:bg-[#247124] text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+            >
+              <ClipboardList className="w-4 h-4" />
+              <span>Take Assessment</span>
+            </button>
+            <button
+              onClick={() => {
+                setCurrentPage('book');
+                setIsOpen(false);
+              }}
+              className="w-full px-4 py-2 text-sm bg-[#a6d7a6] hover:bg-[#2d8f2d] hover:text-white text-[#222222] rounded-lg transition-colors flex items-center justify-center gap-2"
+            >
+              <Calendar className="w-4 h-4" />
+              <span>Book Appointment</span>
+            </button>
+            <button
+              onClick={() => {
+                onLogout();
+                setIsOpen(false);
+              }}
+              className="w-full px-4 py-2 text-sm bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Logout</span>
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ==================== HEADER COMPONENT ====================
 const Header = ({ currentPage, setCurrentPage, user, userProfile, onLogout, onLoginRequired }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -203,17 +408,12 @@ const Header = ({ currentPage, setCurrentPage, user, userProfile, onLogout, onLo
             
             {/* User Info / Logout or Sign In Button */}
             {user ? (
-              <div className="flex items-center gap-3 ml-4 pl-4 border-l-2 border-[#a6d7a6]">
-                <span className="text-sm text-[#555555]">
-                  {userProfile?.name || user.email}
-                </span>
-                <button
-                  onClick={onLogout}
-                  className="text-sm text-[#2d8f2d] hover:text-[#247124] font-medium transition-colors"
-                >
-                  Logout
-                </button>
-              </div>
+              <UserProfileDropdown 
+                user={user}
+                userProfile={userProfile}
+                onLogout={onLogout}
+                setCurrentPage={setCurrentPage}
+              />
             ) : (
               <button
                 onClick={onLoginRequired}
@@ -262,17 +462,46 @@ const Header = ({ currentPage, setCurrentPage, user, userProfile, onLogout, onLo
             {/* Mobile User Info / Logout or Sign In */}
             {user ? (
               <div className="w-full pt-4 border-t-2 border-[#a6d7a6] space-y-3">
-                <p className="text-center text-sm text-[#555555]">
-                  {userProfile?.name || user.email}
-                </p>
+                <div className="bg-gradient-to-r from-[#2d8f2d] to-[#247124] rounded-lg p-4 text-white">
+                  <div className="flex items-center gap-3 mb-2">
+                    <UserCircle className="w-10 h-10" />
+                    <div>
+                      <p className="font-bold">
+                        {userProfile?.name || user?.displayName || user?.email?.split('@')[0]}
+                      </p>
+                      <p className="text-xs opacity-90">{user?.email}</p>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setCurrentPage('screening');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full py-3 bg-[#2d8f2d] hover:bg-[#247124] text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  <ClipboardList className="w-5 h-5" />
+                  <span>Take Assessment</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setCurrentPage('book');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full py-3 bg-[#a6d7a6] hover:bg-[#2d8f2d] hover:text-white text-[#222222] font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  <Calendar className="w-5 h-5" />
+                  <span>Book Appointment</span>
+                </button>
                 <button
                   onClick={() => {
                     onLogout();
                     setIsMobileMenuOpen(false);
                   }}
-                  className="w-full py-3 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg transition-colors"
+                  className="w-full py-3 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
-                  Logout
+                  <LogOut className="w-5 h-5" />
+                  <span>Logout</span>
                 </button>
               </div>
             ) : (
